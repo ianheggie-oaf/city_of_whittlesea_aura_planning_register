@@ -10,7 +10,7 @@ To get started [see the documentation](https://morph.io/documentation)
 
 Select ruby using your favourite ruby version manager, for example:
 ```shell
-chruby 3.1.6
+chruby 2.7.6
 ```
 
 Then install gems using bundler. Currently morph.io has bundler v1.15.2 installed,

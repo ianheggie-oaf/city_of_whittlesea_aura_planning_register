@@ -4,7 +4,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.1.6"
+ruby "2.7.6"
 
 # Handle morph copying Gemfile without .ruby-version - check they are in sync when we can
 ruby_version_file = File.join(__dir__, '.ruby-version')
@@ -19,3 +19,6 @@ gem 'capybara-shadowdom'
 
 # Fix install on ubuntu Noble
 #gem 'nokogiri', '>= 1.16.7'
+
+# Fix ruby version requirements
+gem 'sqlite3', '~> 1.6.9'

@@ -4,7 +4,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.1.6"
+ruby "3.3.5"
 
 # Handle morph copying Gemfile without .ruby-version - check they are in sync when we can
 ruby_version_file = File.join(__dir__, '.ruby-version')

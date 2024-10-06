@@ -4,7 +4,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.3.5"
+ruby File.read('.ruby-version').strip
 
 gem "scraperwiki", git: "https://github.com/openaustralia/scraperwiki-ruby.git", branch: "morph_defaults"
 gem 'capybara'

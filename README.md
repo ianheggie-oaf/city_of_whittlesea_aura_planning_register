@@ -13,9 +13,13 @@ Select ruby using your favourite ruby version manager, for example:
 chruby 3.3.5
 ```
 
-Then install gems using bundler
+Then install gems using bundler. Currently morph.io has bundler v1.15.2 installed,
+so you need to force the installation and use of earlier version.
+Ignore the warnings to upgrade bundler till morph.io ruby runners are updated.
+
 `
-bundle install
+gem install bundler -v 1.15.2
+bundle _1.15.2_ install
 `
 
 ## Running scraper

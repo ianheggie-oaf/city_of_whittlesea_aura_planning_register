@@ -12,13 +12,17 @@ DAYS_INTO_PAST = 30
 
 DEFAULT_TIMEOUT = 30
 
-# Use the gem versions from Gemfile.lock
-require 'bundler/setup'
-Bundler.require(:default)
-
-# require 'scraperwiki'
-# require 'capybara'
-# require 'selenium-webdriver'
+begin
+  # Use the gem versions from Gemfile.lock
+  require 'bundler/setup'
+  Bundler.require(:default)
+rescue Bundler::LockfileError => e
+  $stderr.puts "WARING: Ignoring bundle lock failure: #{e.message}"
+  require 'scraperwiki'
+  require 'capybara'
+  require 'selenium-webdriver'
+  require 'capybara-shadowdom'
+end
 
 require 'date'
 require 'yaml'

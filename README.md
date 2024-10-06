@@ -18,8 +18,8 @@ so you need to force the installation and use of earlier version.
 Ignore the warnings to upgrade bundler till morph.io ruby runners are updated.
 
 `
-gem install bundler -v 1.15.2
-bundle _1.15.2_ install
+gem install bundler -v 1.17.3
+bundle _1.17.3_ install
 `
 
 ## Running scraper

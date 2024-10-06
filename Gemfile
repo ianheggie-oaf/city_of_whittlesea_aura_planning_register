@@ -4,7 +4,12 @@
 
 source "https://rubygems.org"
 
-ruby "2.0.0"
+ruby "3.3.5"
 
 gem "scraperwiki", git: "https://github.com/openaustralia/scraperwiki-ruby.git", branch: "morph_defaults"
-gem "mechanize"
+gem 'capybara'
+gem "selenium-webdriver"
+gem 'capybara-shadowdom'
+
+# Fix install on ubuntu Noble
+#gem 'nokogiri', '>= 1.16.7'

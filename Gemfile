@@ -19,3 +19,7 @@ gem 'capybara-shadowdom'
 
 # Fix install on ubuntu Noble
 #gem 'nokogiri', '>= 1.16.7'
+
+# Fix warnings that gems will no longer be part of the default gems
+gem 'mutex_m'
+gem 'ostruct'

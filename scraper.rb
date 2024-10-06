@@ -125,7 +125,7 @@ class Scraper
     # Parent Application Number -
     date_string = entry['Submitted_Date__c']
     submitted_date = begin
-                       Date.parse(date_string)
+                       Date.parse(date_string).to_s
                      rescue Date::Error
                        warn "Skipping record with invalid date: #{date_string.inspect}"
                        return false

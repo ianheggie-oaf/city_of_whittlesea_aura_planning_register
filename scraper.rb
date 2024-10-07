@@ -3,6 +3,7 @@
 # This is a template for a Ruby scraper on morph.io (https://morph.io)
 # including some code snippets below that you should find helpful
 
+
 REGISTER_FORM_URL = 'https://online.whittlesea.vic.gov.au/s/publicregister'
 INFO_URL_PREFIX = 'https://online.whittlesea.vic.gov.au/s/applicationpageforpr?recordId='
 
@@ -15,6 +16,7 @@ DEFAULT_TIMEOUT = 30
 require 'date'
 require 'yaml'
 require 'uri'
+require 'logger'
 
 # Use the gem versions from Gemfile.lock, except webdrivers
 require 'bundler/setup'
@@ -22,8 +24,10 @@ Bundler.require(:default)
 
 require_relative 'log_helper'
 require_relative 'scraper_utilities'
+require_relative 'capybara_utilities'
 
 class Scraper
+  include CapybaraUtilities
   include LogHelper
   include ScraperUtilities
 
@@ -31,48 +35,13 @@ class Scraper
     false # ENV['HEADED'].to_s == ''
   end
 
-  def create_capybara_session
-    options = Selenium::WebDriver::Chrome::Options.new
-    options.add_argument('--headless') if headless
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-
-    Capybara.register_driver :custom_chrome do |app|
-      Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
-    end
-
-    Capybara::Session.new(:custom_chrome)
-  end
-
-  def visit_with_retry(url)
-    retries = 0
-    max_retries = 2
-
-    begin
-      session = create_capybara_session
-      session.visit(url)
-      session
-    rescue Selenium::WebDriver::Error::WebDriverError => e
-      error "Error visiting URL: #{e.message}"
-      require 'webdrivers'
-      if retries < max_retries
-        puts 'ENV:' # DEBUG
-        system 'env'
-        puts '$ ls -F / /etc'
-        system 'ls -F / /etc'
-        puts '$ uptime'
-        system 'uptime'
-        puts '$ uname -a'
-        system 'uname -a'
-        puts 'END'
-        retries += 1
-        info "Attempting to update ChromeDriver and retry... (Attempt #{retries} of #{max_retries})"
-        Webdrivers::Chromedriver.update
-        retry
-      else
-        raise "Failed to visit URL after #{max_retries} attempts: #{e.message}"
+  def parse_recommended_version(warnings)
+    warnings.each do |warning|
+      if warning =~ /chromedriver (\d+\.\d+\.\d+\.\d+) is recommended for chrome (\d+)/
+        return $1
       end
     end
+    nil
   end
 
   def capture_ajax_response(capybara)

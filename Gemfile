@@ -13,9 +13,10 @@ if File.exist?(ruby_version_file) && File.read(File.join(__dir__, '.ruby-version
 end
 
 gem "scraperwiki", git: "https://github.com/openaustralia/scraperwiki-ruby.git", branch: "morph_defaults"
-gem 'capybara'
-gem "selenium-webdriver"
-gem 'capybara-shadowdom'
+gem 'capybara', '~> 3.40'
+gem 'selenium-webdriver', '~> 4.25'
+gem 'capybara-shadowdom', '~> 0.3'
+gem 'webdrivers', '~> 5.0'
 
 # Fix install on ubuntu Noble
 #gem 'nokogiri', '>= 1.16.7'

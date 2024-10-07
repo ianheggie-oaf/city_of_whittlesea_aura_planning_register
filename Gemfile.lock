@@ -47,6 +47,10 @@ GEM
     sqlite3 (2.1.0-x86_64-linux-gnu)
     sqlite_magic (0.0.6)
       sqlite3
+    webdrivers (5.2.0)
+      nokogiri (~> 1.6)
+      rubyzip (>= 1.3.0)
+      selenium-webdriver (~> 4.0)
     websocket (1.2.11)
     xpath (3.2.0)
       nokogiri (~> 1.8)
@@ -55,10 +59,11 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  capybara
-  capybara-shadowdom
+  capybara (~> 3.40)
+  capybara-shadowdom (~> 0.3)
   scraperwiki!
-  selenium-webdriver
+  selenium-webdriver (~> 4.25)
+  webdrivers (~> 5.0)
 
 RUBY VERSION
    ruby 3.2.2p53

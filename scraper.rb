@@ -183,7 +183,8 @@ class Scraper
           end
 
           list = begin
-                   action&.fetch('returnValue', nil)&.fetch('returnValue', nil)
+                   value = action.is_a?(Hash) ? action.fetch('returnValue', nil) : nil
+                   value.is_a?(Hash) ? value.fetch('returnValue', nil) : nil
                  rescue => e
                    error "Failed: failed to retrieve returnValue.returnValue from #{action.to_yaml}!"
                    raise

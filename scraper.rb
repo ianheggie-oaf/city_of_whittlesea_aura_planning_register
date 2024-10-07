@@ -12,21 +12,15 @@ DAYS_INTO_PAST = 30
 
 DEFAULT_TIMEOUT = 30
 
-begin
-  # Use the gem versions from Gemfile.lock
-  require 'bundler/setup'
-  Bundler.require(:default)
-rescue Bundler::LockfileError => e
-  $stderr.puts "WARING: Ignoring bundle lock failure: #{e.message}"
-  require 'scraperwiki'
-  require 'capybara'
-  require 'selenium-webdriver'
-  require 'capybara-shadowdom'
-end
-
 require 'date'
 require 'yaml'
 require 'uri'
+
+# Use `bundle exec ruby scraper.rb` So gem versions are locked by Gemfile.lock
+require 'scraperwiki'
+require 'capybara'
+require 'selenium-webdriver'
+require 'capybara/shadowdom'
 
 require_relative 'log_helper'
 require_relative 'scraper_utilities'
@@ -39,9 +33,38 @@ class Scraper
     false # ENV['HEADED'].to_s == ''
   end
 
-  def capybara_driver
-    Capybara.ignore_hidden_elements = false
-    Capybara::Session.new(headless ? :selenium_chrome_headless : :selenium_chrome)
+  def create_capybara_session
+    options = Selenium::WebDriver::Chrome::Options.new
+    options.add_argument('--headless') if headless
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+
+    Capybara.register_driver :custom_chrome do |app|
+      Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+    end
+
+    Capybara::Session.new(:custom_chrome)
+  end
+
+  def visit_with_retry(url)
+    retries = 0
+    max_retries = 2
+
+    begin
+      session = create_capybara_session
+      session.visit(url)
+      session
+    rescue Selenium::WebDriver::Error::WebDriverError => e
+      error "Error visiting URL: #{e.message}"
+      if retries < max_retries
+        retries += 1
+        info "Attempting to update ChromeDriver and retry... (Attempt #{retries} of #{max_retries})"
+        Webdrivers::Chromedriver.update
+        retry
+      else
+        raise "Failed to visit URL after #{max_retries} attempts: #{e.message}"
+      end
+    end
   end
 
   def capture_ajax_response(capybara)
@@ -167,11 +190,11 @@ class Scraper
     info "DB has #{before_count} records."
     processed = skipped = 0
     debug "Initialising capybara ..."
-    capybara = capybara_driver
+    capybara = nil
     list = nil
     begin
-      info "Visiting website using capybara ..."
-      capybara.visit(REGISTER_FORM_URL)
+      info "Visiting website using capybara, will retry with updated chromedriver if necessary ..."
+      capybara = visit_with_retry(REGISTER_FORM_URL)
       to_date = Date.today
       from_date = to_date - DAYS_INTO_PAST
       ajax_response = search_within_date_range(capybara, from_date, to_date)
@@ -194,7 +217,7 @@ class Scraper
       end
     ensure
       info "Quitting capybara"
-      capybara.quit
+      capybara&.quit
     end
     unless list.is_a? Array
       error "Failed: Expected action.returnValue.returnValue to be an array: #{action['state']}!"

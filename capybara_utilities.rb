@@ -5,7 +5,7 @@ require 'net/http'
 module CapybaraUtilities
   def get_chrome_version
     chrome_version = nil
-    ['google-chrome', 'chromium', 'chromium-browser'].each do |browser|
+    %w[google-chrome chromium chromium-browser].each do |browser|
       version = `#{browser} --version 2>/dev/null`.strip
       if $?.success?
         chrome_version = version.split.last
@@ -14,7 +14,7 @@ module CapybaraUtilities
     end
 
     if chrome_version
-      chrome_version.split('.').first  # Return major version number
+      chrome_version.split('.').first # Return major version number
     else
       raise "Unable to determine Chrome or Chromium version"
     end
@@ -33,57 +33,45 @@ module CapybaraUtilities
     Capybara::Session.new(:custom_chrome)
   end
 
+  def visit_url(url)
+    session = create_capybara_session
+    session.visit(url)
+    session
+  end
+
   def visit_with_retry(url)
-    retries = 0
-    max_retries = 2
-
+    visit_url(url)
+  rescue Selenium::WebDriver::Error::WebDriverError => e
+    error "Error visiting URL: #{e.message}"
+    info "Attempting to update ChromeDriver with default version and retry..."
+    require 'webdrivers'
     begin
-      raise Selenium::WebDriver::Error::WebDriverError, "force" if retries == 0 && ENV['FORCE_RETRY']
-      session = create_capybara_session
-      session.visit(url)
-      session
+      Webdrivers::Chromedriver.update
+      visit_url(url)
     rescue Selenium::WebDriver::Error::WebDriverError, Webdrivers::VersionError => e
-      error "Error visiting URL: #{e.message}"
-      require 'webdrivers'
-      if retries < max_retries
-        retries += 1
-        info "Attempting to update ChromeDriver and retry... (Attempt #{retries} of #{max_retries})"
-
-        begin
-          Webdrivers::Chromedriver.update
-        rescue Webdrivers::VersionError => ve
-          error "Version error: #{ve.message}"
-          begin
-            chrome_version = get_chrome_version
-            chromedriver_version = find_latest_compatible_chromedriver(chrome_version)
-
-            if chromedriver_version
-              info "Found compatible ChromeDriver version: #{chromedriver_version}"
-              Webdrivers::Chromedriver.required_version = chromedriver_version
-              Webdrivers::Chromedriver.update
-            else
-              error "Unable to find a compatible ChromeDriver version"
-            end
-          rescue StandardError => e
-            error "Error determining browser version: #{e.message}"
-          end
-        end
-
-        retry
-      else
-        raise "Failed to visit URL after #{max_retries} attempts: #{e.message}"
-      end
+      error "Error retrying to visit URL: #{e.message}"
+      info "Attempting to determine required chromedriver to update ChromeDriver and retry..."
+      chrome_version = get_chrome_version
+      info "Found chrome version: #{chrome_version}"
+      chromedriver_version = find_latest_compatible_chromedriver(chrome_version)
+      info "Found compatible ChromeDriver version: #{chromedriver_version}"
+      Webdrivers::Chromedriver.required_version = chromedriver_version if chromedriver_version
+      Webdrivers::Chromedriver.update
+      visit_url(url)
     end
   end
 
   def find_latest_compatible_chromedriver(chrome_version)
     major_version = chrome_version.to_i
+    puts "Chrome major version is: #{major_version}"
     while major_version > 0
       url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_#{major_version}"
       response = Net::HTTP.get_response(URI(url))
       if response.is_a?(Net::HTTPSuccess)
+        puts "Found Chromedriver major version: #{major_version}"
         return response.body.strip
       end
+      puts "Failed Chromedriver major version: #{major_version}, will try next lower"
       major_version -= 1
     end
     nil

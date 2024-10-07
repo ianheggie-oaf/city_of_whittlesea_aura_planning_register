@@ -16,11 +16,9 @@ require 'date'
 require 'yaml'
 require 'uri'
 
-# Use `bundle exec ruby scraper.rb` So gem versions are locked by Gemfile.lock
-require 'scraperwiki'
-require 'capybara'
-require 'selenium-webdriver'
-require 'capybara/shadowdom'
+# Use the gem versions from Gemfile.lock, except webdrivers
+require 'bundler/setup'
+Bundler.require(:default)
 
 require_relative 'log_helper'
 require_relative 'scraper_utilities'
@@ -56,7 +54,17 @@ class Scraper
       session
     rescue Selenium::WebDriver::Error::WebDriverError => e
       error "Error visiting URL: #{e.message}"
+      require 'webdrivers'
       if retries < max_retries
+        puts 'ENV:' # DEBUG
+        system 'env'
+        puts '$ ls -F / /etc'
+        system 'ls -F / /etc'
+        puts '$ uptime'
+        system 'uptime'
+        puts '$ uname -a'
+        system 'uname -a'
+        puts 'END'
         retries += 1
         info "Attempting to update ChromeDriver and retry... (Attempt #{retries} of #{max_retries})"
         Webdrivers::Chromedriver.update

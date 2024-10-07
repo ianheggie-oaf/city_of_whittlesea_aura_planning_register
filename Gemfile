@@ -16,7 +16,7 @@ gem "scraperwiki", git: "https://github.com/openaustralia/scraperwiki-ruby.git",
 gem 'capybara', '~> 3.40'
 gem 'selenium-webdriver', '~> 4.25'
 gem 'capybara-shadowdom', '~> 0.3'
-gem 'webdrivers', '~> 5.0'
+gem 'webdrivers', '~> 5.0', require: false
 
 # Fix install on ubuntu Noble
 #gem 'nokogiri', '>= 1.16.7'

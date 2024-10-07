@@ -175,18 +175,22 @@ class Scraper
       to_date = Date.today
       from_date = to_date - DAYS_INTO_PAST
       ajax_response = search_within_date_range(capybara, from_date, to_date)
-      ajax_response['actions']&.each do |action|
-        unless action['state'] == 'SUCCESS'
-          error "Failed: Action failed with state: #{action['state']}!"
-          exit 1
-        end
+      3.times do
+        ajax_response['actions']&.each do |action|
+          unless action['state'] == 'SUCCESS'
+            error "Failed: Action failed with state: #{action['state']}!"
+            exit 1
+          end
 
-        list = begin
-                 action.fetch('returnValue').fetch('returnValue')
-               rescue => e
-                 error "Failed: failed to retrieve returnValue.returnValue from #{action.to_yaml}!"
-                 raise
-               end
+          list = begin
+                   action&.fetch('returnValue', nil)&.fetch('returnValue', nil)
+                 rescue => e
+                   error "Failed: failed to retrieve returnValue.returnValue from #{action.to_yaml}!"
+                   raise
+                 end
+        end
+        break if list
+        sleep 1
       end
     ensure
       info "Quitting capybara"
